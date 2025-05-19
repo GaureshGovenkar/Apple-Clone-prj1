@@ -32,3 +32,28 @@ jobs:
 
     - name: Display Apache default page (optional)
       run: curl http://localhost
+      
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: trivy install
+      run: | 
+          sudo apt-get install wget apt-transport-https gnupg lsb-release -y
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update -y
+          sudo apt-get install -y trivy 
+          
+    - name: trivy scanning
+      run: trivy fs --format table -o fs-report.json .
+
+    - name: gitleaks scan
+      run: sudo apt install gitleaks -y
+
+    - name: Gitleaks code scan
+      run: gitleaks detect source . -f gitleaksfile.json -f json
+  
+
+
+    
